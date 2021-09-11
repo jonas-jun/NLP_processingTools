@@ -5,7 +5,7 @@ import os
 from typing import Dict
 import re
 
-def load_txt(file, split_by='\t', right_len:int=4, num_cat=3, num_txt=4, filtering=True) -> Dict:
+def load_txt(file, split_by='\t', right_len:int=4, num_cat:int=3, num_txt:int=4, filtering:bool=True) -> Dict:
     '''
     @params
     file: file path to load
