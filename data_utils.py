@@ -3,22 +3,45 @@
 from collections import defaultdict
 import os
 from typing import Dict
+import re
 
-def load_txt(file, split_by = '\t', num_cat=3, num_txt=4) -> Dict:
+def load_txt(file, split_by='\t', right_len:int=4, num_cat=3, num_txt=4, filtering=True) -> Dict:
     '''
     @params
     file: file path to load
     split_by: tsv --> '\t'
+    right_len: when splitted, the length of line should be right_len(int)
     num_cat: category index, line.split('\t')[3] is category?
     num_txt: text index, line.split('\t')[4] is review text?
+    filtering: if True, non hangul, contain chinese char, not splitted at all case are dropped
     '''
     print('Start to load {}'.format(file))
+    drop = 0
     rst = defaultdict(lambda: list())
     with open(file, 'r') as f:
         for line in f:
             line = line.rstrip().split(split_by)
+            if len(line) != right_len:
+                drop += 1
+                continue
+            
+            # preprocess if filtering=True
+            if filtering:
+                review = line[num_txt]
+                if len(review.split())==1:
+                    drop += 1
+                    continue # 띄어쓰기가 하나도 없을 경우 제거
+                if not re.search('[가-힣]', review):
+                    drop += 1
+                    continue # 한글이 없을 경우 제거
+                if re.search('[一-龥]', review):
+                    drop += 1
+                    continue # 한자제거
+
             rst['cat'].append(line[num_cat])
             rst['text'].append(line[num_txt])
+    total = len(rst['cat']) + drop
+    print('dropped {:,} samples over {:,}'.format(drop, total))
     print('Finish loading {:,} samples'.format(len(rst['cat'])))
     return rst
 
